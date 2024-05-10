@@ -1,0 +1,2 @@
+# Disable that sudo asks for the password 
+caeuser ALL=(ALL) NOPASSWD:ALL
