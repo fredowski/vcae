@@ -9,13 +9,7 @@
       msg: Hello world
 
 - name: Disable sudo password
-  hosts: myhosts
-  tasks:
-   - name: Copy nopasswd to /etc/sudoers.d
-     ansible.builtin.copy:
-      src: files/sudo-nopass
-      dest: /etc/sudoers.d
-     become: true
+  ansible.builtin.import_playbook: disable-sudo-password.yaml
 
 - name: Install KDE Desktop Environment
   hosts: myhosts
@@ -90,21 +84,8 @@
         line: 'export GDK_DPI_SCALE=0.5'
         create: yes
 
-- name: LXDE Autologin
-  hosts: myhosts
-  tasks:
-    - name: Autologin caeuser
-      ansible.builtin.lineinfile:
-        path: /etc/lightdm/lightdm.conf
-        regexp: '#autologin-user=.*'
-        line: 'autologin-user=caeuser'
-      become: true
-    - name: Autologin Time
-      ansible.builtin.lineinfile:
-        path: /etc/lightdm/lightdm.conf
-        regexp: '#autologin-user-timeout=.*'
-        line: 'autologin-user-timeout=0'
-      become: true
+- name: Lightdm Autologin
+  ansible.builtin.import_playbook: autologin-lightdm.yaml
 
 - name: Install VS Codium
   hosts: myhosts

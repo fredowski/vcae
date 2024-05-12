@@ -1,0 +1,18 @@
+- name: Lightdm Autologin
+  hosts: myhosts
+  tasks:
+    - name: Autologin caeuser
+      ansible.builtin.lineinfile:
+        path: /etc/lightdm/lightdm.conf
+        regexp: '^autologin-user=.*'
+        insertafter: '^#autologin-user=.*'
+        line: 'autologin-user=caeuser'
+        state: present
+      become: true
+    - name: Autologin Time
+      ansible.builtin.lineinfile:
+        path: /etc/lightdm/lightdm.conf
+        regexp: '^autologin-user-timeout=.*'
+        insertafter: '^#autologin-user-timeout=.*'
+        line: 'autologin-user-timeout=0'
+      become: true
