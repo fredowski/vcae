@@ -88,22 +88,7 @@
   ansible.builtin.import_playbook: autologin-lightdm.yaml
 
 - name: Install VS Codium
-  hosts: myhosts
-  tasks:
-    - name: Install extrepo
-      ansible.builtin.apt:
-        name: extrepo
-      become: true
-    - name: Enable vscodium in extrepo
-      ansible.builtin.command:
-        cmd: extrepo enable vscodium
-        creates: /etc/apt/sources.list.d/extrepo_vscodium.sources
-      become: true
-    - name: Install codium
-      ansible.builtin.apt:
-        update_cache: true
-        name: codium
-      become: true
+  ansible.builtin.import_playbook: autologin-lightdm.yaml
 
 - name: Install GHDL + GtkWave
   ansible.builtin.import_playbook: ghdl.yaml

@@ -1,0 +1,37 @@
+- name: Install VS Codium + VHDL-LS extension
+  hosts: myhosts
+  vars:
+    vhdl_ls_version: 0.7.0
+  tasks:
+    - name: Install extrepo
+      ansible.builtin.apt:
+        name: extrepo
+      become: true
+    - name: Enable vscodium in extrepo
+      ansible.builtin.command:
+        cmd: extrepo enable vscodium
+        creates: /etc/apt/sources.list.d/extrepo_vscodium.sources
+      become: true
+    - name: Install codium
+      ansible.builtin.apt:
+        update_cache: true
+        name: codium
+      become: true
+    - name: Check if vhdl-ls extension is already installed
+      ansible.builtin.command:
+        cmd: grep 'hbohlin.vhdl-ls' $HOME/.vscode-oss/extensions/extensions.json
+      register: result
+      failed_when: result.rc < 0
+      changed_when: false
+    - name: Copy vhdl-ls.vsix to /tmp
+      # Any public place where we can load the .vsix file?
+      # The source is github actions, but you can only download
+      # when you are logged in to github
+      ansible.builtin.copy:
+        src: files/vhdl-ls-{{vhdl_ls_version}}.vsix
+        dest: /tmp
+      when: result.rc > 0 #extension is not installed
+    - name: Install vhdl-ls codium extension
+      ansible.builtin.command:
+        cmd: codium --install-extension /tmp/vhdl-ls-{{vhdl_ls_version}}.vsix
+      when: result.rc > 0 #extension is not installed    
