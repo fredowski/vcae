@@ -1,0 +1,6 @@
+quartus (13.0.1-1) UNRELEASED; urgency=low
+
+  * Initial release
+  * Packaging the quartus install files for debian
+
+ -- Friedrich Beckmann <friedrich.beckmann@tha.de>  Mon, 13 May 2024 22:44:13 +0200
