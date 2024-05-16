@@ -13,12 +13,14 @@ cd quartus-13.0.1
 make dpkg
 ```
 
-This will produce the .deb file
+This will produce the quartus_13.0.1-1_i386.deb file
 
-## Install the .deb file
+## Install Quartus via the .deb file
 
 ```
-sudo apt install ../quartus...deb
+sudo dpkg --add-architecture i386
+sudo apt update
+sudo apt install ./quartus_13.0.1-1_i386.deb
 ```
 
 This will install the quartus package in /opt/altera/13.0sp1. You need
