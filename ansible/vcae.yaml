@@ -1,0 +1,10 @@
+
+
+- name: Install VS Codium
+  ansible.builtin.import_playbook: vscodium.yaml
+
+- name: Install GHDL + GtkWave
+  ansible.builtin.import_playbook: ghdl.yaml
+
+- name: Install Quartus
+  ansible.builtin.import_playbook: quartus-package.yaml

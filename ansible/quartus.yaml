@@ -1,0 +1,49 @@
+- name: Install Quartus FPGA Software
+  hosts: myhosts
+  vars:
+    quartuspath: /opt/altera/13.0sp1
+  tasks:
+    - name: Check if i386 is enabled
+      shell: dpkg --print-foreign-architectures | grep i386
+      register: result_i386_check
+      changed_when: result_i386_check.rc == 1
+      failed_when: result_i386_check.rc > 1
+    - name: Add i386 architecture
+      ansible.builtin.command: dpkg --add-architecture i386
+      when: result_i386_check == 1
+      become: true
+    - name: Install Dependencies
+      ansible.builtin.apt:
+        name: libpng16-16:i386
+              , zlib1g:i386
+              , libc6:i386
+              , libfreetype6:i386
+              , libsm6:i386
+              , libxrender1:i386
+              , libfontconfig1:i386
+              , libxext6:i386
+              , libxft2:i386
+              , libncurses5:i386
+      become: true
+    - name: usb-blaster rules
+      ansible.builtin.copy:
+        src: ../quartus-debian-package/quartus-13.0.1/51-usbblaster.rules
+        dest: /etc/udev/rules.d/
+      become: true
+    - name: libpng12
+      ansible.builtin.script:
+        cmd: "../quartus-debian-package/quartus-13.0.1/install-libpng.sh {{ quartuspath }}" 
+        creates: "{{ quartuspath }}/quartus/linux/libpng12.so.0"
+      become: true
+    - name: quartus
+      ansible.builtin.script:
+        cmd: "../quartus-debian-package/quartus-13.0.1/install-quartus.sh {{ quartuspath }}" 
+        creates: "{{ quartuspath }}/quartus/bin/quartus"
+      become: true
+    - name: Append quartuspath to PATH in .bashrc
+      ansible.builtin.lineinfile:
+        path: ~/.bashrc
+        regexp: "^export PATH=$PATH:{{ quartuspath }}"
+        line: "export PATH=$PATH:{{ quartuspath }}"
+
+

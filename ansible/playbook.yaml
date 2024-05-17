@@ -88,7 +88,7 @@
   ansible.builtin.import_playbook: autologin-lightdm.yaml
 
 - name: Install VS Codium
-  ansible.builtin.import_playbook: autologin-lightdm.yaml
+  ansible.builtin.import_playbook: vscodium.yaml
 
 - name: Install GHDL + GtkWave
   ansible.builtin.import_playbook: ghdl.yaml

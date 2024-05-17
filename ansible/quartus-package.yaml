@@ -1,0 +1,27 @@
+- name: Install Quartus FPGA Software via debian package
+  hosts: myhosts
+  tasks:
+    - name: Check if i386 is enabled
+      shell: dpkg --print-foreign-architectures | grep i386
+      register: result_i386_check
+      changed_when: result_i386_check.rc == 1
+      failed_when: result_i386_check.rc > 1
+    - name: Add i386 architecture
+      ansible.builtin.command: dpkg --add-architecture i386
+      when: result_i386_check == 1
+      become: true
+    - name: Add quartus repository 
+      ansible.builtin.copy:
+        src: ../quartus-debian-package/quartus.list
+        dest: /etc/apt/sources.list.d
+      become: true
+    - name: Install Quartus
+      ansible.builtin.apt:
+        update_cache: true
+        name: quartus:i386
+      become: true
+    - name: Append quartuspath to PATH in .bashrc
+      ansible.builtin.lineinfile:
+        path: ~/.bashrc
+        regexp: "^export PATH=$PATH:/opt/altera/13.0sp1"
+        line: "export PATH=$PATH:/opt/altera/13.0sp1"
