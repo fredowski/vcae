@@ -4,10 +4,8 @@ VERSION:=$(shell dpkg-parsechangelog -S Version | sed -rne 's,([^-\+]+)+(\+dfsg)
 UPSTREAMPACKAGE:=quartus_${VERSION}.orig.tar.gz
 
 help:
-	env
 	echo "Install quartus software on debian"
-	echo "make dpkg: create source tar.gz file"
-	echo "make install: Install the package to DESTDIR"
+	echo "make dpkg: create source tar.gz file and build .deb"
 
 dpkg:
 	tar --exclude=debian --exclude=.git -czf ../${UPSTREAMPACKAGE} .

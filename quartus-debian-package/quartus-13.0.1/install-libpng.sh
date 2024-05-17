@@ -16,7 +16,7 @@ tar -xzf libpng-1.2.59.tar.gz
 cd libpng-1.2.59
 CFLAGS='-m32' ./configure --libdir=/usr/lib/i386-linux-gnu
 make
-mkdir -p $QUARTUSDIR/linux
+mkdir -p $QUARTUSDIR/quartus/linux
 cp .libs/libpng12.so.0 $QUARTUSDIR/quartus/linux
 cd ..
 # Build the x86_64 64 Bit version
@@ -25,7 +25,7 @@ tar -xzf libpng-1.2.59.tar.gz
 cd libpng-1.2.59
 ./configure --libdir=/usr/lib/x86_64-linux-gnu
 make
-mkdir -p $QUARTUSDIR/linux64
+mkdir -p $QUARTUSDIR/quartus/linux64
 cp .libs/libpng12.so.0 $QUARTUSDIR/quartus/linux64
 popd
 rm -rf $TMPDIR

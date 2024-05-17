@@ -22,6 +22,9 @@ chmod a+x ./QuartusSetupWeb-13.0.1.232.run
   --unattendedmodeui none \
   --installdir $QUARTUSDIR \
   --disable-components quartus_help,arria_web,cyclonev,max_web,modelsim_ase,modelsim_ae
+# Remove the nios and the uninstall directories
+rm -rf $QUARTUSDIR/nios2eds
+rm -rf $QUARTUSDIR/uninstall
 popd
 
 
