@@ -1,5 +1,5 @@
 - name: My first play
-  hosts: myhosts
+  hosts: default
   tasks:
    - name: Ping my hosts
      ansible.builtin.ping:
@@ -12,7 +12,7 @@
   ansible.builtin.import_playbook: disable-sudo-password.yaml
 
 - name: Install KDE Desktop Environment
-  hosts: myhosts
+  hosts: default
   tasks:
    - name: Install KDE Plasma Desktop
      ansible.builtin.apt:
@@ -21,7 +21,7 @@
      when: 0 > 1
 
 - name: Install LXQt Desktop Environment
-  hosts: myhosts
+  hosts: default
   tasks:
    - name: Install LXQt Desktop
      ansible.builtin.apt:
@@ -31,7 +31,7 @@
 
 
 - name: Install UTM guest tools
-  hosts: myhosts
+  hosts: default
   tasks:
    - name: Install UTM guest tools
      ansible.builtin.apt:
@@ -41,7 +41,7 @@
      when: 0 > 1
 
 - name: Install VMware guest tools
-  hosts: myhosts
+  hosts: default
   tasks:
     - name: Install VMWare guest tools
       ansible.builtin.apt:
@@ -49,7 +49,7 @@
       become: true
 
 - name: Reboot
-  hosts: myhosts
+  hosts: default
   tasks:
     - name: Reboot
       ansible.builtin.command: shutdown -r now
@@ -57,7 +57,7 @@
       when: 0 > 1
 
 - name: HiDPI Settings
-  hosts: myhosts
+  hosts: default
   tasks:
     - name: Set Cursor Size
       ansible.builtin.lineinfile:

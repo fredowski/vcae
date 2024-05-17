@@ -1,5 +1,5 @@
 - name: Install VS Codium + VHDL-LS extension
-  hosts: myhosts
+  hosts: default
   vars:
     vhdl_ls_version: 0.7.0
   tasks:
@@ -12,6 +12,13 @@
         cmd: extrepo enable vscodium
         creates: /etc/apt/sources.list.d/extrepo_vscodium.sources
       become: true
+    - name: Install acl when on vagrant
+      # Switch to user caeuser requires acl - only required on vagrant
+      # when we are logged in as "vagrant", but we need to be "caeuser"
+      ansible.builtin.apt:
+        name: acl
+      become: true
+      when: ansible_user_id == "vagrant"
     - name: Install codium
       ansible.builtin.apt:
         update_cache: true
@@ -23,6 +30,8 @@
       register: result
       failed_when: result.rc < 0
       changed_when: false
+      become: '{{ ansible_user_id == "vagrant" }}'
+      become_user: caeuser
     - name: Copy vhdl-ls.vsix to /tmp
       # Any public place where we can load the .vsix file?
       # The source is github actions, but you can only download
@@ -31,7 +40,13 @@
         src: files/vhdl-ls-{{vhdl_ls_version}}.vsix
         dest: /tmp
       when: result.rc > 0 #extension is not installed
+      become: '{{ ansible_user_id == "vagrant" }}'
+      become_user: caeuser
     - name: Install vhdl-ls codium extension
       ansible.builtin.command:
         cmd: codium --install-extension /tmp/vhdl-ls-{{vhdl_ls_version}}.vsix
-      when: result.rc > 0 #extension is not installed    
+      when: result.rc > 0 #extension is not installed
+      become_user: caeuser
+      become: '{{ ansible_user_id == "vagrant" }}'
+
+

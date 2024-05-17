@@ -1,5 +1,5 @@
 - name: Install ghdl and gtkwave
-  hosts: myhosts
+  hosts: default
   tasks:
     - name: Install ghdl + gtkwave
       ansible.builtin.apt:

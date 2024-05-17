@@ -1,5 +1,5 @@
 - name: Lightdm Autologin
-  hosts: myhosts
+  hosts: default
   tasks:
     - name: Autologin caeuser
       ansible.builtin.lineinfile:

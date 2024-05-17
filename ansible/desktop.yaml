@@ -1,0 +1,47 @@
+- name: Localize the machine
+  ansible.builtin.import_playbook: localize.yaml
+
+- name: Add user caeuser
+  hosts: default
+  tasks:
+    - name: add caeuser
+      ansible.builtin.user:
+        name: caeuser
+        password: "{{ 'caeuser' | password_hash('sha512', 'somesalt') }}"
+        groups: sudo
+        shell: /bin/bash
+      become: true
+
+- name: Disable sudo password
+  ansible.builtin.import_playbook: disable-sudo-password.yaml
+
+- name: Install LXQt Desktop Environment
+  hosts: default
+  tasks:
+    - name: Install LXQt Desktop
+      ansible.builtin.apt:
+        update_cache: yes
+        name: lxqt-core, lightdm
+      become: true
+
+- name: Install VMware guest tools
+  hosts: default
+  tasks:
+    - name: Install VMWare guest tools
+      ansible.builtin.apt:
+        name: open-vm-tools-desktop
+      become: true
+
+- name: Lightdm Autologin
+  ansible.builtin.import_playbook: autologin-lightdm.yaml
+
+- name: Virtual CAE tools
+  ansible.builtin.import_playbook: vcae.yaml
+
+- name: Reboot
+  hosts: default
+  tasks:
+    - name: Reboot
+      ansible.builtin.command: shutdown -r now
+      become: true
+      when: 0>1

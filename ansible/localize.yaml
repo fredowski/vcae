@@ -1,0 +1,31 @@
+- name: Localization
+  hosts: default
+  tasks:
+    - name: Set local debian repository
+      ansible.builtin.replace:
+        path: /etc/apt/sources.list
+        regexp: 'deb\.debian\.org'
+        replace: 'ftp.de.debian.org'
+      become: true
+    - name: Ensure the locale exists
+      ansible.builtin.locale_gen:
+        name: de_DE.UTF-8
+      become: true
+    - name: Check if locale is already set
+      ansible.builtin.shell:
+        cmd: localectl | grep de_DE.UTF-8
+      register: result
+      failed_when: result.rc < 0
+      changed_when: false
+    - name: set default locale
+      ansible.builtin.command:
+        cmd: localectl set-locale de_DE.UTF-8
+      become: true
+      when: result.rc == 1
+    - name: Set Keyboard
+      ansible.builtin.lineinfile:
+        path: /etc/default/keyboard
+        regexp: '^XKBLAYOUT=.*'
+        line: 'XKBLAYOUT="de"'
+      become: true
+ 

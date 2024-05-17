@@ -1,5 +1,5 @@
 - name: Install Quartus FPGA Software via debian package
-  hosts: myhosts
+  hosts: default
   tasks:
     - name: Check if i386 is enabled
       shell: dpkg --print-foreign-architectures | grep i386
@@ -8,7 +8,7 @@
       failed_when: result_i386_check.rc > 1
     - name: Add i386 architecture
       ansible.builtin.command: dpkg --add-architecture i386
-      when: result_i386_check == 1
+      when: result_i386_check.rc == 1
       become: true
     - name: Add quartus repository 
       ansible.builtin.copy:
@@ -20,8 +20,17 @@
         update_cache: true
         name: quartus:i386
       become: true
+    - name: Install acl when on vagrant
+      # Switch to user caeuser requires acl - only required on vagrant
+      # when we are logged in as "vagrant", but we need to be "caeuser"
+      ansible.builtin.apt:
+        name: acl
+      become: true
+      when: ansible_user_id == "vagrant"
     - name: Append quartuspath to PATH in .bashrc
       ansible.builtin.lineinfile:
-        path: ~/.bashrc
+        path: $HOME/.bashrc
         regexp: "^export PATH=$PATH:/opt/altera/13.0sp1"
         line: "export PATH=$PATH:/opt/altera/13.0sp1"
+      become: '{{ ansible_user_id == "vagrant" }}'
+      become_user: caeuser

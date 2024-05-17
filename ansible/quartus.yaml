@@ -1,5 +1,5 @@
 - name: Install Quartus FPGA Software
-  hosts: myhosts
+  hosts: default
   vars:
     quartuspath: /opt/altera/13.0sp1
   tasks:
@@ -10,7 +10,7 @@
       failed_when: result_i386_check.rc > 1
     - name: Add i386 architecture
       ansible.builtin.command: dpkg --add-architecture i386
-      when: result_i386_check == 1
+      when: result_i386_check.rc == 1
       become: true
     - name: Install Dependencies
       ansible.builtin.apt:
@@ -42,8 +42,10 @@
       become: true
     - name: Append quartuspath to PATH in .bashrc
       ansible.builtin.lineinfile:
-        path: ~/.bashrc
+        path: $HOME/.bashrc
         regexp: "^export PATH=$PATH:{{ quartuspath }}"
         line: "export PATH=$PATH:{{ quartuspath }}"
+      become: true
+      become_user: caeuser
 
 
