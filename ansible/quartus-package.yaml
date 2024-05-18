@@ -30,7 +30,7 @@
     - name: Append quartuspath to PATH in .bashrc
       ansible.builtin.lineinfile:
         path: $HOME/.bashrc
-        regexp: "^export PATH=$PATH:/opt/altera/13.0sp1"
-        line: "export PATH=$PATH:/opt/altera/13.0sp1"
+        regexp: "^export PATH=$PATH:/opt/altera/13.0sp1/quartus/bin"
+        line: "export PATH=$PATH:/opt/altera/13.0sp1/quartus/bin"
       become: '{{ ansible_user_id == "vagrant" }}'
       become_user: caeuser
