@@ -66,6 +66,9 @@ Vagrant.configure("2") do |config|
 
   config.vm.provider "vmware_desktop" do |vmware|
     vmware.gui = true
+    vmware.vmx["displayname"] = "THA Virtual CAE"
+    vmware.vmx["guestos"] = "debian12-64"
+    vmware.vmx["annotation"] = "Die Maschine wurde mit Ansible gebaut und enthält quartus, ghdl und codium."
   end
   #
   # View the documentation for the provider you are using for more
