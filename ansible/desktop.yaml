@@ -27,16 +27,32 @@
 - name: Install VMware guest tools
   hosts: default
   tasks:
+    - name: Show virtualization environment
+      ansible.builtin.debug:
+        var: ansible_virtualization_type
     - name: Install VMWare guest tools
       ansible.builtin.apt:
         name: open-vm-tools-desktop
       become: true
+      when: ansible_virtualization_type == "VMware"
 
 - name: Lightdm Autologin
   ansible.builtin.import_playbook: autologin-lightdm.yaml
 
 - name: Virtual CAE tools
   ansible.builtin.import_playbook: vcae.yaml
+
+- name: Shrink vmware disk
+  hosts: default
+  tasks:
+    - name: Show virtualization environment
+      ansible.builtin.debug:
+        var: ansible_virtualization_type
+    - name: Shrink vmware disk
+      ansible.builtin.command:
+        cmd: vmware-toolbox-cmd disk shrink /
+      become: true
+      when: ansible_virtualization_type == "VMware"
 
 - name: Reboot
   hosts: default
