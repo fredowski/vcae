@@ -1,14 +1,12 @@
-
 # Make a custom debian iso
 
 diso=debian-12.5.0-amd64-netinst.iso
 
-
-vcae.iso: isos/$(diso)
+vcae.iso: isos/$(diso) postinstall postinstall.d/*
 	./build ./isos/$(diso) vcae.iso
 
 isos/$(diso):
-	cd isos; curl --remote-name http://ftp.de.debian.org/debian-cd/12.5.0/amd64/iso-cd/debian-12.5.0-amd64-netinst.iso
+	cd isos; wget http://ftp.de.debian.org/debian-cd/12.5.0/amd64/iso-cd/debian-12.5.0-amd64-netinst.iso
 	
 clean:
 	rm -rf ./isos/* isohdpfx.bin vcae.iso
