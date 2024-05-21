@@ -2,7 +2,7 @@
 
 diso=debian-12.5.0-amd64-netinst.iso
 
-vcae.iso: isos/$(diso) postinstall postinstall.d/*
+vcae.iso: isos/$(diso) postinstall postinstall.d/* preseed.cfg
 	./build ./isos/$(diso) vcae.iso
 
 isos/$(diso):
