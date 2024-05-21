@@ -54,3 +54,42 @@ To upload the repository directory structure to beckmann, run
 cd quartus-debian-package
 make upload
 ```
+
+## VCAE debian iso starter image
+
+The vcae creates its own .iso image which contains the caeuser and the vagrant user. The
+image is ready for vagrant, but can also be used to start directly from iso in VMWare or
+Virtualbox. The iso is based on debian 12.
+
+### Dependencies on MacOS
+
+```
+brew install cpio xorriso wget
+```
+
+### Create the vcae.iso
+
+```
+cd preseed
+make
+```
+
+## VMWare empty machine
+
+The next step is to create a VMware machine based on the .iso
+
+````
+cd vmware
+make
+````
+
+This will produce the base VMware machine vcae.vmwarevm and a Vagrant base box vcae.box
+
+## Provisioning via Ansible
+
+The VMWare machine is ready but empty. To install all the vcae tools via ansible:
+
+```
+cd ansible
+make
+```

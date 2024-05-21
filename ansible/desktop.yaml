@@ -51,6 +51,7 @@
     - name: Shrink vmware disk
       ansible.builtin.command:
         cmd: vmware-toolbox-cmd disk shrink /
+      timeout: 1800
       become: true
       when: ansible_virtualization_type == "VMware"
 
