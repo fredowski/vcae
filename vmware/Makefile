@@ -12,5 +12,12 @@ $(VMDIR)/vcae.vmdk:
 $(VMDIR)/vcae.vmx: vcae.vmx.strip
 	cp vcae.vmx.strip $(VMDIR)/vcae.vmx
 
+$(VMDIR)/vmware.log:
+	echo "Please run make start and watch the install" 
+
+vcae.box: $(VMDIR)/vcae.vmdk $(VMDIR)/vcae.vmx info.json metadata.json Vagrantfile $(VMDIR)/vmware.log 
+	tar -cf vcae.box --directory $(VMDIR) .
+	tar --append -f vcae.box info.json metadata.json Vagrantfile
+
 clean:
-	rm -rf $(VMDIR)
+	rm -rf $(VMDIR) vcae.box

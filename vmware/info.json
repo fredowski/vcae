@@ -1,0 +1,7 @@
+{
+ "Author": "Friedrich Beckmann",
+ "Website": "https://www.hs-augsburg.de/homes/beckmanf/dokuwiki/doku.php",
+ "Artifacts": "https://vagrantcloud.com/generic/",
+ "Repository": "https://github.com/fredowski/preseed",
+ "Description": "Debian 12 basebox for vmware"
+}
