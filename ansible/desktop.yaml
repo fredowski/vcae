@@ -61,4 +61,4 @@
     - name: Reboot
       ansible.builtin.command: shutdown -r now
       become: true
-      when: 0>1
+
