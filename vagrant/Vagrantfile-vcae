@@ -1,0 +1,16 @@
+config.vm.provider "vmware_desktop" do |vmware|
+  vmware.gui = true
+  vmware.linked_clone = false
+  vmware.vmx["ethernet0.virtualDev"] = "e1000"
+  vmware.vmx["ethernet0.pcislotnumber"] = "33"
+  vmware.vmx["ethernet0.connectiontype"] = "nat"
+  vmware.vmx["displayname"] = "carlo"
+  vmware.vmx["guestos"] = "debian12-64"
+  vmware.vmx["annotation"] = "Die Maschine wurde mit Ansible gebaut und enthält quartus, ghdl und codium."
+end
+
+  # Run Ansible from the Vagrant Host
+  #
+  config.vm.provision "ansible" do |ansible|
+    ansible.playbook = "../ansible/desktop.yaml"
+  end
