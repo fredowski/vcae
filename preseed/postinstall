@@ -54,6 +54,11 @@ echo "iface eth0 inet dhcp" >> /etc/network/interfaces
 # Setup caeuser to sudo without password
 cp /tmp/postinstall.d/sudoers-caeuser /etc/sudoers.d/caeuser
 chmod 400 /etc/sudoers.d/caeuser
+# Provide the go.sh script such that caeuser can finish
+# the installation after login from iso
+cp /tmp/postinstall.d/go.sh /home/caeuser
+chown -R caeuser:caeuser /home/caeuser
+chmod 755 /home/caeuser/go.sh
 
 # install ssh keys such that user vagrant can login without password
 # This are the vagrant non secure public keys which are used by vagrant
