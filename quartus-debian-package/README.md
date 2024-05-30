@@ -52,3 +52,10 @@ sudo cp quartus.list /etc/apt/sources.list.d
 sudo apt update
 sudo apt install quartus
 ```
+
+## Build the quartus23 .deb package
+
+```
+cd quartus-23.1
+make dpgk
+```
