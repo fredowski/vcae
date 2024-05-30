@@ -2,16 +2,10 @@
 
 QUARTUSDIR=$1
 
-TMPDIR=/tmp/quartusbuild
+TMPDIR=/tmp/quartus13build
 mkdir -p $TMPDIR
 pushd $TMPDIR
-#if [ ! -f Quartus-web-13.0.1.232-linux.tar ]; then
-#  wget http://www.hs-augsburg.de/~beckmanf/public/Quartus-web-13.0.1.232-linux.tar
-#  wget http://downloads.intel.com/akdlm/software/acdsinst/13.0sp1/232/ib_tar/Quartus-web-13.0.1.232-linux.tar
-#fi
-#if [ ! -d components ]; then
-#  tar -xf Quartus-web-13.0.1.232-linux.tar
-#fi
+
 if [ ! -f QuartusSetupWeb-13.0.1.232.run ]; then
   wget http://downloads.intel.com/akdlm/software/acdsinst/13.0sp1/232/ib_installers/QuartusSetupWeb-13.0.1.232.run
   wget http://downloads.intel.com/akdlm/software/acdsinst/13.0sp1/232/ib_installers/cyclone_web-13.0.1.232.qdz
