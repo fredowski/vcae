@@ -28,7 +28,8 @@ $(q23dpkg):
 
 repo: repository/Packages.xz
 
-repository/Packages.xz: $(alldpkgs) 
+repository/Packages.xz: $(alldpkgs)
+	rm -rf repository
 	mkdir -p repository
 	cd repository; ln -s ../$(q13dpkg) .
 	cd repository; ln -s ../$(q23dpkg) .
