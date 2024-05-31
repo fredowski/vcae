@@ -13,7 +13,7 @@ Homepage: https://www.hs-augsburg.de/homes/beckmanf/dokuwiki/doku.php?id=ubuntu_
 #Vcs-Git: https://salsa.debian.org/debian/quartus.git
 
 Package: quartus13
-Architecture: any
+Architecture: i386
 Depends:
  quartususb,
  libpng16-16,

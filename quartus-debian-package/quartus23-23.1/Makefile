@@ -9,7 +9,7 @@ help:
 
 dpkg:
 	tar --exclude=debian --exclude=.git -czf ../${UPSTREAMPACKAGE} .
-	debuild
+	dpkg-buildpackage
 
 install:
 	./install-quartus.sh ${DESTDIR}/opt/altera/23.1

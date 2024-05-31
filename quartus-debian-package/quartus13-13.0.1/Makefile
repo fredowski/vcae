@@ -9,7 +9,7 @@ help:
 
 dpkg:
 	tar --exclude=debian --exclude=.git -czf ../${UPSTREAMPACKAGE} .
-	debuild --host-arch i386
+	dpkg-buildpackage --host-arch=i386
 
 install:
 	./install-quartus.sh ${DESTDIR}/opt/altera/13.0sp1
