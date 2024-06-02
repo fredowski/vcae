@@ -18,7 +18,7 @@
     - name: Install Quartus
       ansible.builtin.apt:
         update_cache: true
-        name: quartus:i386
+        name: quartus13:i386
       become: true
     - name: Install acl when on vagrant
       # Switch to user caeuser requires acl - only required on vagrant
