@@ -12,6 +12,7 @@ Homepage: https://www.hs-augsburg.de/homes/beckmanf/dokuwiki/doku.php?id=ubuntu_
 
 Package: quartususb
 Architecture: all
+Multi-Arch: foreign
 Depends:
 Description: Intel Quartus usb udev rules
  Set the usb udev rules for all quartus versions
