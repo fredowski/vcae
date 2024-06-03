@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Exit on error
+set -e
+
 # Build libpng12 for quartus and copy the .so files to the quartus/linux and
 # quartus/linux64 directory.
 # libpng12 is required by quartus but not available on current distributions

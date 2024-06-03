@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# exit on error
+set -e
+
 QUARTUSDIR=$1
 
 QUARTUSINSTALLER=QuartusLiteSetup-23.1std.0.991-linux.run

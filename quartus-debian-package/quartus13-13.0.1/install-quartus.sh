@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# exit on error
+set -e
+
 QUARTUSDIR=$1
 
 TMPDIR=/tmp/quartus13build

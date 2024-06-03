@@ -5,7 +5,9 @@ Maintainer: Friedrich Beckmann <friedrich.beckmann@tha.de>
 Rules-Requires-Root: no
 Build-Depends:
  debhelper-compat (= 13),
+ gcc-multilib:amd64,
  wget,
+ zlib1g-dev:i386,
  zlib1g-dev
 Standards-Version: 4.6.2
 Homepage: https://www.hs-augsburg.de/homes/beckmanf/dokuwiki/doku.php?id=ubuntu_virtual_cae_system
