@@ -4,7 +4,8 @@ Priority: optional
 Maintainer: Friedrich Beckmann <friedrich.beckmann@tha.de>
 Rules-Requires-Root: no
 Build-Depends:
- debhelper-compat (= 13)
+ debhelper-compat (= 13),
+ devscripts
 Standards-Version: 4.6.2
 Homepage: https://www.hs-augsburg.de/homes/beckmanf/dokuwiki/doku.php?id=ubuntu_virtual_cae_system
 #Vcs-Browser: https://salsa.debian.org/debian/quartus
