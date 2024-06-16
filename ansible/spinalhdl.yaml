@@ -1,0 +1,32 @@
+- name: Install spinalhdl
+  hosts: default
+  tasks:
+    - name: Install jdk
+      ansible.builtin.apt:
+        name: openjdk-17-jdk-headless
+              , curl
+              , git
+      become: true
+    - name: Install Scala coursier install
+      ansible.builtin.shell:
+        cmd: |
+          curl -fL "https://github.com/coursier/launchers/raw/master/cs-x86_64-pc-linux.gz" | gzip -d > cs
+          chmod +x cs
+          ./cs setup --env
+          rm ./cs
+        creates: $HOME/.local/share/coursier/bin/cs
+    - name: Append scala/coursier to PATH in .bashrc
+      ansible.builtin.lineinfile:
+        path: $HOME/.bashrc
+        regexp: "^export PATH=$PATH:$HOME/.local/share/coursier/bin"
+        line: "export PATH=$PATH:$HOME/.local/share/coursier/bin"
+    - name: Check if VSCodium Scala extension is already installed
+      ansible.builtin.command:
+        cmd: grep 'scalameta.metals' $HOME/.vscode-oss/extensions/extensions.json
+      register: result
+      failed_when: result.rc < 0
+      changed_when: false
+    - name: Install Scala(Metals) codium extension
+      ansible.builtin.command:
+        cmd: codium --install-extension scalameta.metals
+      when: result.rc > 0 #extension is not installed
