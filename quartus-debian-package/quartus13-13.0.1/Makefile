@@ -9,9 +9,8 @@ help:
 
 dpkg:
 	tar --exclude=debian --exclude=.git -czf ../${UPSTREAMPACKAGE} .
-	dpkg-buildpackage --host-arch=i386
+	debuild --no-lintian -a arm64
+	debuild --no-lintian -a amd64
 
 install:
-	./install-quartus.sh ${DESTDIR}/opt/altera/13.0sp1
-	./install-libpng.sh ${DESTDIR}/opt/altera/13.0sp1
-
+	# Nothing to be done...

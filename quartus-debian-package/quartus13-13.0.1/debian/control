@@ -5,28 +5,27 @@ Maintainer: Friedrich Beckmann <friedrich.beckmann@tha.de>
 Rules-Requires-Root: no
 Build-Depends:
  debhelper-compat (= 13),
- gcc-multilib:amd64,
- wget,
- zlib1g-dev:i386,
- zlib1g-dev
+ wget
 Standards-Version: 4.6.2
 Homepage: https://www.hs-augsburg.de/homes/beckmanf/dokuwiki/doku.php?id=ubuntu_virtual_cae_system
 #Vcs-Browser: https://salsa.debian.org/debian/quartus
 #Vcs-Git: https://salsa.debian.org/debian/quartus.git
 
 Package: quartus13
-Architecture: i386
+Architecture: any
+Multi-Arch: foreign
 Depends:
  quartususb,
- libpng16-16,
- zlib1g,
- libc6,
- libfreetype6,
- libsm6,
- libxrender1,
- libfontconfig1,
- libxext6,
- libxft2,
- libncurses5
+ quartus13files,
+ debootstrap [!amd64],
+ qemu-user [!amd64],
+ qemu-user-binfmt [!amd64],
+ libc6 [amd64],
+ libfreetype6 [amd64],
+ libsm6 [amd64],
+ libxrender1 [amd64],
+ libfontconfig1 [amd64],
+ libxext6 [amd64],
+ libxft2 [amd64]
 Description: Intel Quartus 13 for Cyclone II
  Intel Quartus FPGA synthesis software with Cyclone II support

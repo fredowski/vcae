@@ -7,13 +7,15 @@ help:
 	echo "make repo: build the repository with quartus13 and quartus23"
 	echo "make upload: upload the repository to web"
 
-q13dpkg=quartus13_13.0.1-1_i386.deb
+q13dpkg=quartus13_13.0.1-2_amd64.deb
+q13dpkgarm=quartus13_13.0.1-2_arm64.deb
+q13files=quartus13files_1.0-1_all.deb
 q23dpkg=quartus23_23.1-1_amd64.deb
 qusbdpkg=quartususb_1.0-1_all.deb
 
-alldpkgs=$(q13dpkg) $(q23dpkg) $(qusbdpkg)
+alldpkgs=$(q13dpkg) $(q23dpkg) $(qusbdpkg) $(q13files)
 
-deb13: $(q13dpkg) $(qusbdpkg)
+deb13: $(q13dpkg) $(qusbdpkg) $(q13files)
 
 deb23: $(q23dpkg) $(qusbdpkg)
 
@@ -22,6 +24,9 @@ $(qusbdpkg):
 
 $(q13dpkg):
 	cd quartus13-13.0.1; make dpkg
+
+$(q13files):
+	cd quartus13files-1.0; make dpkg
 
 $(q23dpkg):
 	cd quartus23-23.1; make dpkg
@@ -34,7 +39,9 @@ repository/Packages.xz: $(alldpkgs)
 	cd repository; ln -s ../$(q13dpkg) .
 	cd repository; ln -s ../$(q23dpkg) .
 	cd repository; ln -s ../$(qusbdpkg) .
-	cd repository; dpkg-scanpackages . | xz -c > Packages.xz
+	cd repository; ln -s ../$(q13dpkgarm) .
+	cd repository; ln -s ../$(q13files) .
+	cd repository; dpkg-scanpackages --multiversion . | xz -c > Packages.xz
 
 upload: repository/Packages.xz
 	scp repository/* beckmanf@login.rz.hs-augsburg.de:/www/beckmanf/public/repository

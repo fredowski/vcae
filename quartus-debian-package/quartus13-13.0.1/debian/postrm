@@ -1,0 +1,3 @@
+#!/bin/bash
+#Remove the installed rootfs
+rm -rf /opt/altera/qemu/rootfs

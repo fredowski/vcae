@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# This script installs the rootfs for qemu if we want to run
+# quartus on non-amd64 architectures. If we are on amd64 we do nothing.
+
+if [ $(uname -m) = "x86_64" ]; then
+  exit
+fi
+# Make sure that the binfmt works
+# Register the x86_64 to the kernel
+# systemd-binfmt is not ready when qemu-user-binfmt is installed
+# in the same install process as dependency
+#cat /usr/share/qemu/binfmt.d/qemu-x86_64.conf > /proc/sys/fs/binfmt_misc/register
+systemctl restart systemd-binfmt
+
+# Retrieve the distribution name like "trixie"
+DISTNAME="$(sed -n 's/^VERSION_CODENAME=//p' /etc/os-release)"
+
+debootstrap --arch=amd64 --variant=minbase --include=libc6,libfreetype6,libsm6,libxrender1,libfontconfig1,libxext6,libxft2 trixie /opt/altera/qemu/rootfs
