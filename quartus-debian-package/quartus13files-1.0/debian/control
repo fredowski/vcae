@@ -1,0 +1,23 @@
+Source: quartus13files
+Section: electronics
+Priority: optional
+Maintainer: Friedrich Beckmann <friedrich.beckmann@tha.de>
+Rules-Requires-Root: no
+Build-Depends:
+ debhelper-compat (= 13),
+ wget,
+ devscripts
+Standards-Version: 4.6.2
+Homepage: https://www.hs-augsburg.de/homes/beckmanf/dokuwiki/doku.php?id=ubuntu_virtual_cae_system
+#Vcs-Browser: https://salsa.debian.org/debian/quartus
+#Vcs-Git: https://salsa.debian.org/debian/quartus.git
+
+Package: quartus13files
+Architecture: all
+Depends:
+Multi-arch: foreign
+Description: Intel Quartus 13 for Cyclone II files
+ Intel Quartus FPGA synthesis software with Cyclone II support
+ This are only the amd64 files marked as architecture independent
+ On aarch64 this should then run via qemu in user mode
+ On amd64 this runs native with some libraries installed

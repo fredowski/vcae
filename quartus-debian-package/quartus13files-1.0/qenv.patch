@@ -1,0 +1,43 @@
+--- qenv.sh.bak	2025-12-10 12:34:00.225486510 +0100
++++ qenv.sh	2025-12-10 12:37:09.586007832 +0100
+@@ -93,21 +93,26 @@
+ 	export QUARTUS_BIT_TYPE=64
+ fi
+ 
+-# We don't support processors without SSE extensions (e.g. Pentium II and older CPUs).
+-cpumodel=`grep 'model name' /proc/cpuinfo | sed -e's/model name.*: //g' | uniq`
+-export cpumodel="$cpumodel"
+-grep sse /proc/cpuinfo > /dev/null 2>&1
+-if test $? != 0 ; then
+-	echo ""
+-	echo "The Quartus II software is optimized for the Intel Pentium III processor"
+-	echo "and newer processors.  The required extensions were not found on:"
+-	echo "'$cpumodel'"
+-	echo ""
+-	echo "The Quartus II software will not function properly on this processor model."
+-	echo "Terminating..."
+-	export QENV_STATUS=-1
++if test `uname -m` = "aarch64" ; then
++	export QUARTUS_BIT_TYPE=64
+ fi
+ 
++# We don't support processors without SSE extensions (e.g. Pentium II and older CPUs).
++#cpumodel=`grep 'model name' /proc/cpuinfo | sed -e's/model name.*: //g' | uniq`
++#export cpumodel="$cpumodel"
++#grep sse /proc/cpuinfo > /dev/null 2>&1
++#if test $? != 0 ; then
++#	echo ""
++#	echo "The Quartus II software is optimized for the Intel Pentium III processor"
++#	echo "and newer processors.  The required extensions were not found on:"
++#	echo "'$cpumodel'"
++#	echo ""
++#	echo "The Quartus II software will not function properly on this processor model."
++#	echo "Terminating..."
++#	export QENV_STATUS=-1
++#fi
++
++export QEMU_LD_PREFIX=/opt/altera/qemu/rootfs
+ ##### Check if should use 64-bit executables
+ 
+ unset USE_64BIT
+

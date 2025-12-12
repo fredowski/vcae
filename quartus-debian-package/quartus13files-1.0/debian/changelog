@@ -1,0 +1,8 @@
+quartus13files (1.0-1) UNRELEASED; urgency=low
+
+  * Initial release
+  * Packaging the quartus install files for debian
+  * Provide this as architecture independent package to run on
+    amd64 and aarch64 (via qemu)
+
+ -- Friedrich Beckmann <friedrich.beckmann@tha.de>  Thu, 11 Dec 2025 22:44:13 +0200
