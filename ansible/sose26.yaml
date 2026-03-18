@@ -10,6 +10,19 @@
 - name: Lightdm Autologin
   ansible.builtin.import_playbook: autologin-lightdm.yaml
 
+- name: Install UTM guest tools when on UTM
+  hosts: default
+  tasks:
+    - name: Show virtualization environment
+      ansible.builtin.debug:
+        var: ansible_virtualization_type
+    - name: Install UTM guest tools
+      ansible.builtin.apt:
+        name: spice-vdagent
+              , qemu-guest-agent
+      become: true
+      when: ansible_virtualization_type == "qemu"
+
 - name: Install VS Codium
   ansible.builtin.import_playbook: vscodium.yaml
 
