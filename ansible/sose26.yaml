@@ -21,7 +21,7 @@
         name: spice-vdagent
               , qemu-guest-agent
       become: true
-      when: ansible_virtualization_type == "qemu"
+      when: ansible_virtualization_type == "kvm"
 
 - name: Install VS Codium
   ansible.builtin.import_playbook: vscodium.yaml
