@@ -3,11 +3,11 @@
   tasks:
     - name: Install jdk
       ansible.builtin.apt:
-        name: openjdk-17-jdk-headless
+        name: openjdk-21-jdk-headless
               , curl
               , git
       become: true
-    - name: Install Scala coursier install
+    - name: Install Scala coursier install (x86_64)
       ansible.builtin.shell:
         cmd: |
           curl -fL "https://github.com/coursier/launchers/raw/master/cs-x86_64-pc-linux.gz" | gzip -d > cs
@@ -15,6 +15,17 @@
           ./cs setup --env
           rm ./cs
         creates: $HOME/.local/share/coursier/bin/cs
+      when: ansible_architecture in ["x86_64"]
+    - name: Install Scala coursier install (arm64)
+      ansible.builtin.shell:
+        cmd: |
+          wget -O cs.gz "https://github.com/VirtusLab/coursier-m1/releases/latest/download/cs-aarch64-pc-linux.gz"
+          gunzip cs.gz
+          chmod +x cs
+          ./cs setup --env
+          rm ./cs
+        creates: $HOME/.local/share/coursier/bin/cs
+      when: ansible_architecture in ["aarch64"]
     - name: Append scala/coursier to PATH in .bashrc
       ansible.builtin.lineinfile:
         path: $HOME/.bashrc
@@ -30,3 +41,11 @@
       ansible.builtin.command:
         cmd: codium --install-extension scalameta.metals
       when: result.rc > 0 #extension is not installed
+    - name : Install mill build tool
+      ansible.builtin.shell:
+        cmd: |
+          curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.5/mill-dist-1.1.5-mill.sh -o /usr/local/bin/mill
+          chmod +x /usr/local/bin/mill
+        creates: /usr/local/bin/mill
+      become: true
+
