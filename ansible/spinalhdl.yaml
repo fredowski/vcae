@@ -1,36 +1,63 @@
+# the Metals extension below needs codium
+- name: Install VS Codium
+  ansible.builtin.import_playbook: vscodium.yaml
+
 - name: Install spinalhdl
   hosts: default
+  vars:
+    coursier_bin: /opt/openroad/bin
+    coursier_arc: /opt/openroad/share/coursier/arc
+    mill_bin: /opt/openroad/bin
   tasks:
     - name: Install jdk
       ansible.builtin.apt:
         name: openjdk-21-jdk-headless
               , curl
               , git
+              , wget
       become: true
     - name: Install Scala coursier install (x86_64)
       ansible.builtin.shell:
+        # launchers (scala, sbt, ...) exec into the archive dir, so it is
+        # installed read-only under {{ coursier_arc }}; the download cache
+        # is only needed during install
         cmd: |
+          set -e
+          tmp=$(mktemp -d)
+          cd $tmp
           curl -fL "https://github.com/coursier/launchers/raw/master/cs-x86_64-pc-linux.gz" | gzip -d > cs
           chmod +x cs
-          ./cs setup --env
-          rm ./cs
-        creates: $HOME/.local/share/coursier/bin/cs
+          COURSIER_CACHE=$tmp/cache COURSIER_ARCHIVE_CACHE={{ coursier_arc }} \
+            ./cs setup --yes --env --install-dir {{ coursier_bin }}
+          cd /
+          rm -rf $tmp
+        creates: "{{ coursier_bin }}/cs"
+      become: true
       when: ansible_architecture in ["x86_64"]
     - name: Install Scala coursier install (arm64)
       ansible.builtin.shell:
+        # launchers (scala, sbt, ...) exec into the archive dir, so it is
+        # installed read-only under {{ coursier_arc }}; the download cache
+        # is only needed during install
         cmd: |
+          set -e
+          tmp=$(mktemp -d)
+          cd $tmp
           wget -O cs.gz "https://github.com/VirtusLab/coursier-m1/releases/latest/download/cs-aarch64-pc-linux.gz"
           gunzip cs.gz
           chmod +x cs
-          ./cs setup --env
-          rm ./cs
-        creates: $HOME/.local/share/coursier/bin/cs
+          COURSIER_CACHE=$tmp/cache COURSIER_ARCHIVE_CACHE={{ coursier_arc }} \
+            ./cs setup --yes --env --install-dir {{ coursier_bin }}
+          cd /
+          rm -rf $tmp
+        creates: "{{ coursier_bin }}/cs"
+      become: true
       when: ansible_architecture in ["aarch64"]
     - name: Append scala/coursier to PATH in .bashrc
       ansible.builtin.lineinfile:
         path: $HOME/.bashrc
-        regexp: "^export PATH=$PATH:$HOME/.local/share/coursier/bin"
-        line: "export PATH=$PATH:$HOME/.local/share/coursier/bin"
+        regexp: '^export PATH=\$PATH:{{ coursier_bin }}$'
+        line: "export PATH=$PATH:{{ coursier_bin }}"
     - name: Check if VSCodium Scala extension is already installed
       ansible.builtin.command:
         cmd: grep 'scalameta.metals' $HOME/.vscode-oss/extensions/extensions.json
@@ -41,11 +68,17 @@
       ansible.builtin.command:
         cmd: codium --install-extension scalameta.metals
       when: result.rc > 0 #extension is not installed
+    - name: Remove old mill from /usr/local/bin
+      # it would shadow {{ mill_bin }}/mill in PATH
+      ansible.builtin.file:
+        path: /usr/local/bin/mill
+        state: absent
+      become: true
     - name : Install mill build tool
       ansible.builtin.shell:
         cmd: |
-          curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.5/mill-dist-1.1.5-mill.sh -o /usr/local/bin/mill
-          chmod +x /usr/local/bin/mill
-        creates: /usr/local/bin/mill
+          curl -fL https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.5/mill-dist-1.1.5-mill.sh -o {{ mill_bin }}/mill
+          chmod +x {{ mill_bin }}/mill
+        creates: "{{ mill_bin }}/mill"
       become: true
 

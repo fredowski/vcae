@@ -1,0 +1,52 @@
+# Start from a minimal debian trixie (e.g. the vcae preseed image) with only
+# ssh and what ansible needs. Installs the LXQt desktop with autologin for
+# caeuser. Afterwards run one of the course playbooks:
+#   digitaltechnik.yaml, soc.yaml or vlsi.yaml
+- name: Localize the machine
+  ansible.builtin.import_playbook: localize.yaml
+
+- name: Add user caeuser
+  hosts: default
+  tasks:
+    - name: Add caeuser
+      # the vcae preseed image has caeuser already, this is for other
+      # images, e.g. a generic vagrant box which only has the user vagrant
+      ansible.builtin.user:
+        name: caeuser
+        password: "{{ 'caeuser' | password_hash('sha512', 'somesalt') }}"
+        update_password: on_create
+        groups: sudo
+        shell: /bin/bash
+      become: true
+
+- name: Disable sudo password
+  ansible.builtin.import_playbook: disable-sudo-password.yaml
+
+- name: Install LXQt Desktop Environment
+  hosts: default
+  tasks:
+    - name: Install LXQt Desktop
+      ansible.builtin.apt:
+        update_cache: true
+        name: lxqt-core
+              , lightdm
+      become: true
+
+- name: Lightdm Autologin
+  ansible.builtin.import_playbook: autologin-lightdm.yaml
+
+- name: Install guest tools
+  ansible.builtin.import_playbook: guest-tools.yaml
+
+- name: Reboot into the desktop
+  hosts: default
+  tasks:
+    - name: Reboot
+      # waits until the machine is back, not possible when running locally
+      ansible.builtin.reboot:
+      become: true
+      when: ansible_connection != "local"
+    - name: Reboot required
+      ansible.builtin.debug:
+        msg: Please reboot the machine to start the desktop
+      when: ansible_connection == "local"

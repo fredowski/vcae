@@ -1,0 +1,68 @@
+# Last step before a vm image is handed out: remove build products and
+# build caches, then make the free disk space reclaimable on the host.
+# The tools in /opt/openroad do not need any of the removed files and the
+# playbooks only check if a tool exists, so nothing is rebuilt afterwards.
+# The coursier and mill caches are kept, they contain the SpinalHDL
+# downloads which students otherwise load on their first build.
+- name: Finalize vm image
+  hosts: default
+  vars:
+    build_dir: "{{ ansible_env.HOME }}/ansible-build"
+  tasks:
+    - name: Remove build directory {{ build_dir }}
+      # contains root owned files from make install
+      ansible.builtin.file:
+        path: "{{ build_dir }}"
+        state: absent
+      become: true
+    - name: Remove bazel caches
+      # the bazel output tree contains read-only files, root removes them
+      ansible.builtin.file:
+        path: "{{ ansible_env.HOME }}/.cache/{{ item }}"
+        state: absent
+      loop:
+        - bazel
+        - bazel-disk-cache
+        - bazel-repository-cache
+        - bazelisk
+      become: true
+    - name: Remove downloaded debian packages
+      ansible.builtin.apt:
+        clean: true
+      become: true
+
+    - name: Show virtualization environment
+      ansible.builtin.debug:
+        var: ansible_virtualization_type
+    - name: Shrink vmware disk
+      ansible.builtin.command:
+        cmd: vmware-toolbox-cmd disk shrink /
+      timeout: 1800
+      become: true
+      when: ansible_virtualization_type == "VMware"
+    - name: Trim free disk space (UTM)
+      ansible.builtin.command:
+        cmd: fstrim -av
+      become: true
+      when: ansible_virtualization_type == "kvm"
+    - name: Fill free disk space with zeros (VirtualBox)
+      # afterwards on the host with the vm shut down:
+      #   VBoxManage modifymedium disk <file>.vdi --compact
+      # dd stops with "no space left", which is expected
+      ansible.builtin.shell:
+        cmd: |
+          dd if=/dev/zero of=/var/tmp/zerofill bs=1M status=none || true
+          sync
+          rm -f /var/tmp/zerofill
+      timeout: 3600
+      become: true
+      when: ansible_virtualization_type == "virtualbox"
+
+- name: Reboot
+  hosts: default
+  # provision.sh skips this with --skip-tags reboot and reboots itself
+  tags: reboot
+  tasks:
+    - name: Reboot
+      ansible.builtin.command: shutdown -r now
+      become: true

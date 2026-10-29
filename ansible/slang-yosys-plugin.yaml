@@ -1,0 +1,37 @@
+# slang plugin for yosys (SystemVerilog synthesis for OpenROAD), built from
+# source. It is built against the yosys in /opt/openroad and installed
+# to /opt/openroad/share/yosys/plugins/slang.so
+- name: Install yosys
+  ansible.builtin.import_playbook: yosys.yaml
+
+- name: Build and install slang yosys plugin from source
+  hosts: default
+  vars:
+    plugin_prefix: /opt/openroad
+    build_dir: "{{ ansible_env.HOME }}/ansible-build"
+  tasks:
+    - name: Install slang yosys plugin build dependencies
+      # slang needs a C++20 compiler and python3 for code generation
+      ansible.builtin.apt:
+        name: git
+              , make
+              , cmake
+              , g++
+              , python3
+      become: true
+    - name: Check if slang yosys plugin is already installed
+      ansible.builtin.stat:
+        path: "{{ plugin_prefix }}/share/yosys/plugins/slang.so"
+      register: plugin_so
+    - name: Build slang yosys plugin in {{ build_dir }}
+      # the plugin commit is pinned in build_slang_yosys_plugin.sh
+      ansible.builtin.script:
+        cmd: build_slang_yosys_plugin.sh {{ plugin_prefix }} {{ build_dir }}
+      when: not plugin_so.stat.exists
+    - name: Install slang yosys plugin
+      # installs to $(yosys-config --datdir)/plugins, configured by the build
+      ansible.builtin.command:
+        cmd: cmake --install build
+        chdir: "{{ build_dir }}/yosys-slang"
+      become: true
+      when: not plugin_so.stat.exists

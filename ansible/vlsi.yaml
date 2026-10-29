@@ -1,0 +1,38 @@
+# Course VLSI: Altera synthesis + ghdl + gtkwave + everything for the
+# OpenROAD flow scripts (yosys with ghdl and slang plugin, OpenROAD, klayout)
+# Run init-from-shell.yaml or init-from-gui.yaml first.
+# The playbooks import what they depend on, e.g. the plugins import yosys,
+# so some plays run more than once. They only report "ok" the second time.
+- name: Install common tools
+  ansible.builtin.import_playbook: common.yaml
+
+- name: Install yosys
+  ansible.builtin.import_playbook: yosys.yaml
+
+- name: Install ghdl yosys plugin
+  ansible.builtin.import_playbook: ghdl-yosys-plugin.yaml
+
+- name: Install slang yosys plugin
+  ansible.builtin.import_playbook: slang-yosys-plugin.yaml
+
+- name: Install OpenROAD
+  ansible.builtin.import_playbook: openroad.yaml
+
+- name: Install klayout
+  ansible.builtin.import_playbook: klayout.yaml
+
+- name: Install OpenROAD flow scripts runtime dependencies
+  hosts: default
+  tasks:
+    - name: Install OpenROAD flow scripts runtime dependencies
+      # the flow uses make, GNU time for the step statistics and python
+      # with yaml, numpy and matplotlib for reports and plots
+      ansible.builtin.apt:
+        name: make
+              , git
+              , time
+              , python3
+              , python3-yaml
+              , python3-numpy
+              , python3-matplotlib
+      become: true

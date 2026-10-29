@@ -1,0 +1,76 @@
+# OpenROAD with GUI, built from source with bazel and installed to
+# /opt/openroad/bin (openroad binary + openroad.runfiles directory).
+# The bazel caches are in $HOME/.cache, the build uses the remote cache
+# configured in the OpenROAD .bazelrc.
+- name: Build and install OpenROAD from source
+  hosts: default
+  vars:
+    openroad_prefix: /opt/openroad
+    build_dir: "{{ ansible_env.HOME }}/ansible-build"
+    bazelisk_version: 1.28.1
+    bazelisk_arch:
+      x86_64: amd64
+      aarch64: arm64
+  tasks:
+    - name: Install bazelisk
+      ansible.builtin.apt:
+        deb: https://github.com/bazelbuild/bazelisk/releases/download/v{{ bazelisk_version }}/bazelisk-{{ bazelisk_arch[ansible_architecture] }}.deb
+      become: true
+    - name: Install OpenROAD build dependencies
+      ansible.builtin.apt:
+        name: git
+      become: true
+    - name: Install OpenROAD GUI build dependencies (aarch64)
+      # xcb and friends for the GUI, only required on aarch64
+      ansible.builtin.apt:
+        name: libx11-dev
+              , libice-dev
+              , libxcb-cursor-dev
+              , libxcb-icccm4-dev
+              , libxcb-render0-dev
+              , libxcb-render-util0-dev
+              , libx11-xcb-dev
+              , libsm-dev
+              , libxcb-keysyms1-dev
+              , libxcb-shape0-dev
+              , libxcb-sync-dev
+              , libxcb-util-dev
+              , libxcb-xfixes0-dev
+              , libxcb-xkb-dev
+              , libdbus-1-dev
+              , libfontconfig-dev
+              , libxkbcommon-dev
+              , libxkbcommon-x11-dev
+              , libxcb-randr0-dev
+      become: true
+      when: ansible_architecture == "aarch64"
+    - name: Check if OpenROAD is already installed
+      ansible.builtin.stat:
+        path: "{{ openroad_prefix }}/bin/openroad"
+      register: openroad_bin
+    - name: Build OpenROAD in {{ build_dir }}
+      # the OpenROAD commit is pinned in build_openroad.sh
+      ansible.builtin.script:
+        cmd: build_openroad.sh {{ build_dir }}
+      when: not openroad_bin.stat.exists
+    - name: Install OpenROAD
+      # same as bazel/install.sh in the OpenROAD repository
+      ansible.builtin.shell:
+        cmd: |
+          set -e
+          tar -xf {{ build_dir }}/OpenROAD/bazel-bin/packaging/openroad.tar
+          rm -rf openroad.repo_mapping
+        chdir: "{{ openroad_prefix }}/bin"
+      become: true
+      when: not openroad_bin.stat.exists
+    - name: Append {{ openroad_prefix }}/bin to PATH in .bashrc
+      ansible.builtin.lineinfile:
+        path: $HOME/.bashrc
+        regexp: '^export PATH=\$PATH:{{ openroad_prefix }}/bin$'
+        line: "export PATH=$PATH:{{ openroad_prefix }}/bin"
+    - name: Set OPENROAD_EXE in .bashrc
+      # only required for the OpenROAD flow scripts
+      ansible.builtin.lineinfile:
+        path: $HOME/.bashrc
+        regexp: '^export OPENROAD_EXE='
+        line: "export OPENROAD_EXE={{ openroad_prefix }}/bin/openroad"

@@ -1,0 +1,66 @@
+# klayout for the OpenROAD flow scripts (GDS view, DRC and LVS), built from
+# source and installed to /opt/openroad/lib/klayout with a start script
+# /opt/openroad/bin/klayout.
+# The debian package is removed to avoid two different klayout versions.
+- name: Build and install klayout from source
+  hosts: default
+  vars:
+    klayout_prefix: /opt/openroad
+    build_dir: "{{ ansible_env.HOME }}/ansible-build"
+  tasks:
+    - name: Remove klayout debian packages
+      ansible.builtin.apt:
+        name: klayout*
+        state: absent
+      become: true
+    - name: Install klayout build dependencies
+      ansible.builtin.apt:
+        name: git
+              , make
+              , g++
+              , qt6-base-dev
+              , qt6-base-dev-tools
+              , qt6-charts-dev
+              , qt6-tools-dev
+              , qt6-multimedia-dev
+              , qt6-svg-dev
+              , qt6-5compat-dev
+              , libgit2-dev
+              , zlib1g-dev
+              , libpython3-dev
+              , ruby
+              , ruby-dev
+      become: true
+    - name: Check if klayout is already installed
+      ansible.builtin.stat:
+        path: "{{ klayout_prefix }}/lib/klayout/klayout"
+      register: klayout_bin
+    - name: Build klayout in {{ build_dir }}
+      # the klayout version is pinned in build_klayout.sh
+      ansible.builtin.script:
+        cmd: build_klayout.sh {{ klayout_prefix }} {{ build_dir }}
+      when: not klayout_bin.stat.exists
+    - name: Install klayout
+      ansible.builtin.copy:
+        src: "{{ build_dir }}/klayout-bin/"
+        dest: "{{ klayout_prefix }}/lib/klayout/"
+        remote_src: true
+        owner: root
+        group: root
+        mode: preserve
+      become: true
+      when: not klayout_bin.stat.exists
+    - name: Install klayout start script
+      # klayout finds its plugins and libraries in {{ klayout_prefix }}/lib/klayout
+      ansible.builtin.copy:
+        dest: "{{ klayout_prefix }}/bin/klayout"
+        mode: "0755"
+        content: |
+          #!/bin/sh
+          LD_LIBRARY_PATH={{ klayout_prefix }}/lib/klayout exec {{ klayout_prefix }}/lib/klayout/klayout "$@"
+      become: true
+    - name: Append {{ klayout_prefix }}/bin to PATH in .bashrc
+      ansible.builtin.lineinfile:
+        path: $HOME/.bashrc
+        regexp: '^export PATH=\$PATH:{{ klayout_prefix }}/bin$'
+        line: "export PATH=$PATH:{{ klayout_prefix }}/bin"

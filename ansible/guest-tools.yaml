@@ -1,0 +1,19 @@
+# Guest tools (copy & paste, display resize) for the virtualization in use
+- name: Install guest tools
+  hosts: default
+  tasks:
+    - name: Show virtualization environment
+      ansible.builtin.debug:
+        var: ansible_virtualization_type
+    - name: Install VMware guest tools
+      ansible.builtin.apt:
+        name: open-vm-tools-desktop
+      become: true
+      when: ansible_virtualization_type == "VMware"
+    - name: Install UTM guest tools
+      # UTM (QEMU and Apple Virtualization) is reported as kvm
+      ansible.builtin.apt:
+        name: spice-vdagent
+              , qemu-guest-agent
+      become: true
+      when: ansible_virtualization_type == "kvm"

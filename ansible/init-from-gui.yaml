@@ -1,0 +1,17 @@
+# Start from a debian trixie default install with a desktop already, e.g.
+# this machine. The user caeuser must exist. Afterwards run one of the
+# course playbooks:
+#   digitaltechnik.yaml, soc.yaml or vlsi.yaml
+- name: Disable sudo password
+  ansible.builtin.import_playbook: disable-sudo-password.yaml
+
+- name: Update apt cache
+  hosts: default
+  tasks:
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+      become: true
+
+- name: Install guest tools
+  ansible.builtin.import_playbook: guest-tools.yaml

@@ -1,0 +1,40 @@
+# ghdl plugin for yosys (VHDL synthesis for OpenROAD), built from source.
+# It is built against the ghdl and yosys in /opt/openroad and installed
+# to /opt/openroad/share/yosys/plugins/ghdl.so
+- name: Install ghdl
+  ansible.builtin.import_playbook: ghdl.yaml
+
+- name: Install yosys
+  ansible.builtin.import_playbook: yosys.yaml
+
+- name: Build and install ghdl yosys plugin from source
+  hosts: default
+  vars:
+    plugin_prefix: /opt/openroad
+    build_dir: "{{ ansible_env.HOME }}/ansible-build"
+  tasks:
+    - name: Install ghdl yosys plugin build dependencies
+      ansible.builtin.apt:
+        name: git
+              , make
+              , g++
+      become: true
+    - name: Check if ghdl yosys plugin is already installed
+      ansible.builtin.stat:
+        path: "{{ plugin_prefix }}/share/yosys/plugins/ghdl.so"
+      register: plugin_so
+    - name: Build ghdl yosys plugin in {{ build_dir }}
+      # the plugin commit is pinned in build_ghdl_yosys_plugin.sh
+      ansible.builtin.script:
+        cmd: build_ghdl_yosys_plugin.sh {{ plugin_prefix }} {{ build_dir }}
+      when: not plugin_so.stat.exists
+    - name: Install ghdl yosys plugin
+      # root has no {{ plugin_prefix }}/bin in PATH, so give the tools explicitly
+      ansible.builtin.command:
+        cmd: >
+          make install
+          GHDL={{ plugin_prefix }}/bin/ghdl
+          YOSYS_CONFIG={{ plugin_prefix }}/bin/yosys-config
+        chdir: "{{ build_dir }}/ghdl-yosys-plugin"
+      become: true
+      when: not plugin_so.stat.exists

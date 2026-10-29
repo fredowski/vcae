@@ -1,0 +1,4 @@
+# Course Digitaltechnik: Altera synthesis + ghdl + gtkwave
+# Run init-from-shell.yaml or init-from-gui.yaml first.
+- name: Install common tools
+  ansible.builtin.import_playbook: common.yaml

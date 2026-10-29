@@ -1,0 +1,11 @@
+# Installs common to all courses: VSCodium with VHDL-LS, Quartus 13.0sp1
+# for the Altera FPGA synthesis and ghdl + gtkwave for VHDL simulation.
+# Imported by digitaltechnik.yaml, soc.yaml and vlsi.yaml.
+- name: Install VS Codium
+  ansible.builtin.import_playbook: vscodium.yaml
+
+- name: Install Quartus
+  ansible.builtin.import_playbook: quartus-package.yaml
+
+- name: Install ghdl + gtkwave
+  ansible.builtin.import_playbook: ghdl.yaml

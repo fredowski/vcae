@@ -1,0 +1,57 @@
+# One ghdl for all courses, built from source and installed to /opt/openroad:
+#  - VHDL simulation only: the debian package would be sufficient
+#  - SpinalHDL: needs the interprocess communication which is missing
+#    in the debian package
+#  - OpenROAD: ghdl is needed for synthesis with yosys and for simulation
+# The debian package is removed to avoid two different ghdl versions.
+- name: Build and install ghdl (llvm backend) from source
+  hosts: default
+  vars:
+    ghdl_prefix: /opt/openroad
+    build_dir: "{{ ansible_env.HOME }}/ansible-build"
+  tasks:
+    - name: Remove ghdl debian packages
+      # the debian ghdl lacks the interprocess communication spinalhdl needs
+      ansible.builtin.apt:
+        name: ghdl*
+              , libghdl*
+        state: absent
+      become: true
+    - name: Install ghdl build dependencies
+      # configure uses clang++ by default for the llvm backend and needs
+      # the llvm-c headers from llvm-dev
+      ansible.builtin.apt:
+        name: gnat
+              , llvm
+              , llvm-dev
+              , clang
+              , libboost-dev
+              , git
+              , make
+      become: true
+    - name: Install ghdl runtime dependencies + gtkwave
+      # ghdl -e/-r links the simulation with cc and -lz
+      ansible.builtin.apt:
+        name: zlib1g-dev
+              , gtkwave
+      become: true
+    - name: Check if ghdl is already installed
+      ansible.builtin.stat:
+        path: "{{ ghdl_prefix }}/bin/ghdl"
+      register: ghdl_bin
+    - name: Build ghdl in {{ build_dir }}
+      # the ghdl commit is pinned in build_ghdl.sh
+      ansible.builtin.script:
+        cmd: build_ghdl.sh {{ ghdl_prefix }} {{ build_dir }}
+      when: not ghdl_bin.stat.exists
+    - name: Install ghdl
+      ansible.builtin.command:
+        cmd: make install
+        chdir: "{{ build_dir }}/ghdl"
+      become: true
+      when: not ghdl_bin.stat.exists
+    - name: Append {{ ghdl_prefix }}/bin to PATH in .bashrc
+      ansible.builtin.lineinfile:
+        path: $HOME/.bashrc
+        regexp: '^export PATH=\$PATH:{{ ghdl_prefix }}/bin$'
+        line: "export PATH=$PATH:{{ ghdl_prefix }}/bin"

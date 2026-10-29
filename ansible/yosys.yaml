@@ -1,0 +1,66 @@
+# yosys for OpenROAD, built from source and installed to /opt/openroad.
+# The ghdl and slang plugins are built against this yosys.
+# The debian package is removed to avoid two different yosys versions.
+- name: Build and install yosys from source
+  hosts: default
+  vars:
+    yosys_prefix: /opt/openroad
+    build_dir: "{{ ansible_env.HOME }}/ansible-build"
+  tasks:
+    - name: Remove yosys debian packages
+      ansible.builtin.apt:
+        name: yosys*
+        state: absent
+      become: true
+    - name: Install yosys build dependencies
+      ansible.builtin.apt:
+        name: gawk
+              , git
+              , make
+              , python3
+              , lld
+              , bison
+              , clang
+              , flex
+              , libffi-dev
+              , libfl-dev
+              , libreadline-dev
+              , pkg-config
+              , tcl-dev
+              , zlib1g-dev
+              , cmake
+              , wget
+      become: true
+    - name: Install yosys runtime dependencies
+      # graphviz + xdot for the yosys show command
+      ansible.builtin.apt:
+        name: graphviz
+              , xdot
+              , time
+      become: true
+    - name: Check if yosys is already installed
+      ansible.builtin.stat:
+        path: "{{ yosys_prefix }}/bin/yosys"
+      register: yosys_bin
+    - name: Build yosys in {{ build_dir }}
+      # the yosys version is pinned in build_yosys.sh
+      ansible.builtin.script:
+        cmd: build_yosys.sh {{ yosys_prefix }} {{ build_dir }}
+      when: not yosys_bin.stat.exists
+    - name: Install yosys
+      ansible.builtin.command:
+        cmd: make install PREFIX={{ yosys_prefix }}
+        chdir: "{{ build_dir }}/yosys"
+      become: true
+      when: not yosys_bin.stat.exists
+    - name: Append {{ yosys_prefix }}/bin to PATH in .bashrc
+      ansible.builtin.lineinfile:
+        path: $HOME/.bashrc
+        regexp: '^export PATH=\$PATH:{{ yosys_prefix }}/bin$'
+        line: "export PATH=$PATH:{{ yosys_prefix }}/bin"
+    - name: Set YOSYS_EXE in .bashrc
+      # only required for the OpenROAD flow scripts
+      ansible.builtin.lineinfile:
+        path: $HOME/.bashrc
+        regexp: '^export YOSYS_EXE='
+        line: "export YOSYS_EXE={{ yosys_prefix }}/bin/yosys"

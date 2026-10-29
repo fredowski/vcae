@@ -1,4 +1,18 @@
 #!/bin/bash -x
+# Start and provision the vcae vmware machine built from the preseed image
+# usage: provision.sh <course>
+#   course: digitaltechnik, soc or vlsi
+
+COURSE=$1
+
+case "$COURSE" in
+    digitaltechnik|soc|vlsi)
+        ;;
+    *)
+        echo "usage: $0 digitaltechnik|soc|vlsi" >&2
+        exit 1
+        ;;
+esac
 
 VCAEVM=../vmware/vcae.vmwarevm/vcae.vmx
 
@@ -20,7 +34,7 @@ else
         echo -n "."
         cnt=$((cnt+1))
     done
-    if [ $cnt == 10 ]; then
+    if [ $cnt == 5 ]; then
         echo "Could not start machine"
         exit 1
     else
@@ -44,6 +58,22 @@ fi
 echo "[default]" > vcae.ini
 echo "$VCAEIP ansible_user=vagrant ansible_ssh_private_key_file=./vagrant-sec.key" >> vcae.ini
 
-ansible-playbook -i vcae.ini desktop.yaml 
+set -e
 
+# Desktop and system setup as user vagrant
+ansible-playbook -i vcae.ini init-from-shell.yaml
 
+# The course installs and the cleanup write to $HOME, so they must run as
+# caeuser. Only vagrant has an ssh key, give caeuser the same key for now.
+ansible -i vcae.ini default -b -m ansible.builtin.file \
+    -a "path=/home/caeuser/.ssh state=directory owner=caeuser group=caeuser mode=0700"
+ansible -i vcae.ini default -b -m ansible.builtin.copy \
+    -a "src=/home/vagrant/.ssh/authorized_keys dest=/home/caeuser/.ssh/authorized_keys remote_src=true owner=caeuser group=caeuser mode=0600"
+
+ansible-playbook -i vcae.ini -e ansible_user=caeuser $COURSE.yaml
+ansible-playbook -i vcae.ini -e ansible_user=caeuser --skip-tags reboot finalize-image.yaml
+
+# Remove the vagrant key from caeuser again and reboot
+ansible -i vcae.ini default -b -m ansible.builtin.file \
+    -a "path=/home/caeuser/.ssh/authorized_keys state=absent"
+ansible -i vcae.ini default -b -m ansible.builtin.reboot
