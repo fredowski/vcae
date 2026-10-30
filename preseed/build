@@ -16,7 +16,7 @@ then
     exit 1
 fi
 
-if [ `uname` == "Darwin" ]; then
+if [ "`uname`" = "Darwin" ]; then
     export PATH=`brew --prefix cpio`/bin:$PATH
 fi
 
@@ -28,34 +28,59 @@ CONFIGURATION_FILES="$(mktemp -d)"
 
 xorriso -osirrox on -indev $INPUTFILE -extract / $ISO_FILES
 
-chmod -R +w $ISO_FILES/install.amd
-gunzip $ISO_FILES/install.amd/initrd.gz
+# amd64 iso has install.amd and boots BIOS (isolinux) and UEFI
+# arm64 iso has install.a64 and boots UEFI (grub) only
+if test -d $ISO_FILES/install.a64
+then
+    INSTALLDIR=$ISO_FILES/install.a64
+else
+    INSTALLDIR=$ISO_FILES/install.amd
+fi
+
+chmod -R +w $INSTALLDIR
+gunzip $INSTALLDIR/initrd.gz
 
 # contains all of the files that we want on the remote system
 tar -c -z -f $CONFIGURATION_FILES/postinstall.tar.gz -C $CURDIR postinstall.d
 
 # now add these all to the initrd file
 cp $CURDIR/preseed.cfg $CONFIGURATION_FILES/preseed.cfg
-(cd $CONFIGURATION_FILES; echo preseed.cfg | cpio -H newc -o -A -F $ISO_FILES/install.amd/initrd)
-(cd $CONFIGURATION_FILES; echo postinstall.tar.gz | cpio -H newc -o -A -F $ISO_FILES/install.amd/initrd)
-echo postinstall | cpio -H newc -o -A -F $ISO_FILES/install.amd/initrd
+(cd $CONFIGURATION_FILES; echo preseed.cfg | cpio -H newc -o -A -F $INSTALLDIR/initrd)
+(cd $CONFIGURATION_FILES; echo postinstall.tar.gz | cpio -H newc -o -A -F $INSTALLDIR/initrd)
+echo postinstall | cpio -H newc -o -A -F $INSTALLDIR/initrd
 
-gzip $ISO_FILES/install.amd/initrd
-chmod -R -w $ISO_FILES/install.amd/
+gzip $INSTALLDIR/initrd
+chmod -R -w $INSTALLDIR/
 
-chmod +w $ISO_FILES/isolinux/isolinux.cfg
-cp isolinux.cfg $ISO_FILES/isolinux
-chmod -w $ISO_FILES/isolinux/isolinux.cfg
+if test -d $ISO_FILES/isolinux
+then
+    chmod +w $ISO_FILES/isolinux/isolinux.cfg
+    cp $CURDIR/isolinux.cfg $ISO_FILES/isolinux
+    chmod -w $ISO_FILES/isolinux/isolinux.cfg
+else
+    # put the automated install entry first in the grub menu
+    chmod +w $ISO_FILES/boot/grub $ISO_FILES/boot/grub/grub.cfg
+    cat $CURDIR/grub.cfg $ISO_FILES/boot/grub/grub.cfg > $CONFIGURATION_FILES/grub.cfg
+    cp $CONFIGURATION_FILES/grub.cfg $ISO_FILES/boot/grub/grub.cfg
+    chmod -w $ISO_FILES/boot/grub/grub.cfg
+fi
 
 
 chmod +w $ISO_FILES/md5sum.txt
 (cd $ISO_FILES; md5sum `find -L . -type f` > md5sum.txt)
 chmod -w $ISO_FILES/md5sum.txt
 
-# extract the first bytes from the original iso. This is isohdpfx.bin
-dd if=$INPUTFILE bs=512 count=1 of=$CURDIR/isohdpfx.bin
+if test -d $ISO_FILES/isolinux
+then
+    # extract the first bytes from the original iso. This is isohdpfx.bin
+    dd if=$INPUTFILE bs=512 count=1 of=$CURDIR/isohdpfx.bin
 
-xorriso -as mkisofs -o $OUTPUTFILE -isohybrid-mbr $CURDIR/isohdpfx.bin -c isolinux/boot.cat -b isolinux/isolinux.bin -no-emul-boot -boot-load-size 4 -boot-info-table -eltorito-alt-boot -e boot/grub/efi.img -no-emul-boot -isohybrid-gpt-basdat $ISO_FILES
+    xorriso -as mkisofs -o $OUTPUTFILE -isohybrid-mbr $CURDIR/isohdpfx.bin -c isolinux/boot.cat -b isolinux/isolinux.bin -no-emul-boot -boot-load-size 4 -boot-info-table -eltorito-alt-boot -e boot/grub/efi.img -no-emul-boot -isohybrid-gpt-basdat $ISO_FILES
+else
+    # same layout as the debian arm64 iso: El Torito UEFI image plus
+    # efi.img as appended EFI system partition for usb/disk boot
+    xorriso -as mkisofs -o $OUTPUTFILE -partition_cyl_align all -append_partition 2 0xef $ISO_FILES/boot/grub/efi.img -iso_mbr_part_type 0x83 -c boot.catalog -e boot/grub/efi.img -no-emul-boot $ISO_FILES
+fi
 
 chmod -R +w $ISO_FILES
 rm -rf $ISO_FILES

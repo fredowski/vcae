@@ -59,7 +59,7 @@ make upload
 
 The vcae creates its own .iso image which contains the caeuser and the vagrant user. The
 image is ready for vagrant, but can also be used to start directly from iso in VMWare or
-Virtualbox. The iso is based on debian 12.
+Virtualbox. The iso is based on debian 13 (trixie).
 
 ### Dependencies on MacOS
 
@@ -67,7 +67,7 @@ Virtualbox. The iso is based on debian 12.
 brew install cpio xorriso wget
 ```
 
-### Create the vcae.iso
+### Create the vcae iso
 
 ```
 cd preseed

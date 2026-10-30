@@ -6,16 +6,16 @@ vcae.box: $(VMDIR)/vcae.vmdk $(VMDIR)/vcae.vmx info.json metadata.json Vagrantfi
 	tar -cf vcae.box --directory $(VMDIR) .
 	tar --append -f vcae.box info.json metadata.json Vagrantfile
 
-start: $(VMDIR)/vcae.vmdk $(VMDIR)/vcae.vmx ../preseed/vcae.iso
+start: $(VMDIR)/vcae.vmdk $(VMDIR)/vcae.vmx ../preseed/vcae-amd64.iso
 	vmrun start $(VMDIR)/vcae.vmx
 
-$(VMDIR)/vcae.vmdk: ../preseed/vcae.iso
+$(VMDIR)/vcae.vmdk: ../preseed/vcae-amd64.iso
 	./create_vmware_vm.sh
 
-$(VMDIR)/vcae.vmx: vcae.vmx.strip ../preseed/vcae.iso
+$(VMDIR)/vcae.vmx: vcae.vmx.strip ../preseed/vcae-amd64.iso
 	cp vcae.vmx.strip $(VMDIR)/vcae.vmx
 
-$(VMDIR)/vmware.log: ../preseed/vcae.iso
+$(VMDIR)/vmware.log: ../preseed/vcae-amd64.iso
 	vmrun start $(VMDIR)/vcae.vmx
 	./wait_until_install_is_done.sh
 

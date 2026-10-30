@@ -1,76 +1,117 @@
-# System Installer "preseed" Script
+# vcae Debian Installer ISO
 
-This is a script for building a new installer for Debian "bullseye" using a technique called a "preseeding". By using a "preseed" script we tell the installer the answer to a lot of routine questions to give ourselves a standard environment for new hosts. The script in this repository does the following:
+This builds an automated Debian "trixie" (13) installer ISO for the vcae
+virtual machine using a "preseed" configuration. The installation runs
+without any questions and powers the machine off when it is finished.
 
-* Creates a "paul" user with a known password and an SSH authorized_keys file and a known good environment.
-* Builds an LVM configuration with an 8GB swap partition and the rest of the disk for data using XFS as a file system instead of ext4.
-* Enables "security" and "updates" repositories but does not enable backports, sources or automatic updates.
-* Fixes the systemd timesync configuration.
-* Fixes the /etc/resolv.conf file.
-* Installs standard system utilities and an SSH server.
-* Installs some additional basic, common software.
+**WARNING!** The installer takes the first disk which is not mounted
+and erases it without asking. Only boot this ISO in a virtual machine or
+on a machine whose disk you want to wipe.
 
-When using the installer there are still several questions that you must answer. These include:
+## What the installation does
 
-* If there are multiple active interfaces you must choose one.
-* What IP address and host name to use for this new host.
-* Which disk to use for the installation. **WARNING!** This disk *will* be erased.
-* Which disk will receive the master boot record.
+* German locale and keyboard, timezone Europe/Berlin, hostname `vcae`.
+* Debian mirror `ftp.de.debian.org`.
+* Partitioning: one ext4 root partition plus swap (`atomic` recipe, no LVM).
+* No tasksel, no desktop. Only `openssh-server`, `build-essential`,
+  `keyboard-configuration` and `python3` are installed in addition to the
+  base system.
+* Root login is disabled. Two users are created:
+  * `caeuser` with password `caeuser`, sudo without password.
+  * `vagrant` with password `vagrant`, sudo without password and the
+    insecure vagrant public keys in `~/.ssh/authorized_keys`, so that the
+    machine can be used as a vagrant box.
+* Predictable network interface names are disabled and `eth0` is
+  configured with DHCP. VMware Fusion and vagrant assign different pci
+  slots, so a name like `ens33` would not survive (see `postinstall`).
+* `go.sh` is copied to `/home/caeuser`.
 
-Otherwise this will create an entirely automated installation.
+## Files
 
-# How To Use This Script
+* `preseed.cfg` the answers for the debian installer.
+* `postinstall` runs at the end of the installation in the target system.
+* `postinstall.d/` files used by `postinstall`, packed into the initrd.
+* `isolinux.cfg` boot menu for amd64 BIOS boot. It starts the automated
+  install after a 30 second timeout.
+* `grub.cfg` is prepended to the grub menu of the arm64 ISO. The entry
+  "Automated install (vcae)" starts after a 30 second timeout.
+* `build` the script which builds the ISO.
 
-Follow these steps to run this script:
+## Building the ISO
 
-1. Get on a Debian host!
-2. [Download an netinstall image from the Debian website](https://www.debian.org/distrib/netinst).
-3. Clone this repository.
-4. Install these libraries: `apt-get install -y --no-install-recommends xorriso isolinux pwgen`
-5. Run the build script: `./build /path/to/debian-11.x.x-amd64-netinst.iso /path/to/preseed-debian-11.x.x-amd64-netinst.iso`
-6. Use the new ISO file to build your host.
+Install the dependencies on Debian:
 
-Note that the preseed.cfg file has no password for logging in as the "paul" user. You can set a password or just use SSH keys. You can change the password by following these steps:
+```
+apt-get install -y --no-install-recommends xorriso cpio wget make
+```
 
-1. Put the new password in a text file. Call it something like "newpassword.txt".
-2. Generate the new password: `cat newpassword.txt | mkpasswd -s -m sha-512 -S "$(pwgen -ns 16 1)"`
-3. Place that new password in the preseed.cfg file.
-4. Remove newpassword.txt and *definitely* **do not** put it into source control.
+On macOS:
 
-# macoS
+```
+brew install cpio xorriso wget
+```
 
-Use brew to install some dependencies
+Then run
 
-```brew install cpio xorriso```
+```
+make                  # vcae-amd64.iso
+make vcae-arm64.iso   # vcae-arm64.iso, e.g. UTM or VMware Fusion on Apple Silicon
+```
 
-# Using the "preseed" ISO
+The Makefile downloads the Debian netinst ISO to `isos/` and calls
+`build`. You can also call the script directly. It detects the
+architecture from the ISO:
 
-Use this ISO just like you would any other install ISO. A preseeded ISO file can build baremetal systems or virtual machines. It is only useful for on-premise instances and is not useful for cloud instances.
+```
+./build /path/to/debian-13.x.x-amd64-netinst.iso vcae-amd64.iso
+```
 
-# Building a USB Boot Disk on macOS
+`make clean` removes the downloaded and generated ISOs.
 
-I'm always having to look this up so here are the steps.
+## Boot modes
 
-1. Unmount the disk where `diskXX` is your USB disk: `diskutil unmountDisk /dev/diskXX`
-2. Convert the ISO file into a DMG file: `hdiutil convert -format UDRW -o preseed ./preseed.iso`
-3. Write the DMG file to your USB disk: `sudo dd if=./preseed.dmg of=/dev/diskXX bs=1m`
+* amd64, BIOS: the automated install starts after the timeout.
+* amd64, UEFI: the ISO boots, but the grub menu is the unmodified Debian
+  menu. There is no automated entry, so you have to select the install
+  entry yourself.
+* arm64, UEFI only: the automated install starts after the timeout.
 
-Your thumb drive is now bootable.
+## After the installation
 
-# Building a USB Boot Disk on Linux
+Boot the installed system, log in as `caeuser` and run
 
-I'm also always having to look this up so here are the steps.
+```
+./go.sh
+```
 
-1. Attach the USB disk. Use `lsblk` to see what the device label is that the USB disk has received.
-2. Write the ISO file to your USB disk: `sudo dd bs=4M if=preseed.iso of=/dev/XXX conv=fdatasync`
+It installs ansible and git, clones https://github.com/fredowski/vcae and
+runs the ansible playbooks `init-from-shell.yaml` (LXQt desktop with
+autologin) and `digitaltechnik.yaml`. For the other courses, run
+`soc.yaml` or `vlsi.yaml` from `~/vcae/ansible` instead of
+`digitaltechnik.yaml`.
 
-# More Information
+## Writing the ISO to a USB disk
 
-These links are where I got most of the information for building this preseed script.
+The ISO is a hybrid image and can be written directly to a USB disk.
+**This erases the USB disk.**
+
+macOS, where `diskXX` is your USB disk:
+
+```
+diskutil unmountDisk /dev/diskXX
+sudo dd if=./vcae-amd64.iso of=/dev/rdiskXX bs=1m
+```
+
+Linux, use `lsblk` to find the device name of the USB disk:
+
+```
+sudo dd bs=4M if=vcae-amd64.iso of=/dev/XXX conv=fdatasync
+```
+
+## More Information
 
 * [https://wiki.debian.org/DebianInstaller/Preseed](https://wiki.debian.org/DebianInstaller/Preseed)
 * [https://wiki.debian.org/DebianInstaller/Preseed/EditIso](https://wiki.debian.org/DebianInstaller/Preseed/EditIso)
+* [https://www.debian.org/releases/trixie/example-preseed.txt](https://www.debian.org/releases/trixie/example-preseed.txt)
 * [https://github.com/pin/debian-vm-install](https://github.com/pin/debian-vm-install)
-* [https://www.debian.org/releases/squeeze/example-preseed.txt](https://www.debian.org/releases/squeeze/example-preseed.txt)
 * [https://serverfault.com/questions/722021/preseeding-debian-install-efi](https://serverfault.com/questions/722021/preseeding-debian-install-efi)
-* [https://github.com/dsgnr/ubuntu-16.04-unattended-install/blob/master/preseed.cfg](https://github.com/dsgnr/ubuntu-16.04-unattended-install/blob/master/preseed.cfg)
