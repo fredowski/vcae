@@ -41,13 +41,10 @@
         cmd: build_klayout.sh {{ klayout_prefix }} {{ build_dir }}
       when: not klayout_bin.stat.exists
     - name: Install klayout
-      ansible.builtin.copy:
-        src: "{{ build_dir }}/klayout-bin/"
-        dest: "{{ klayout_prefix }}/lib/klayout/"
-        remote_src: true
-        owner: root
-        group: root
-        mode: preserve
+      # cp -a instead of ansible copy with remote_src: the copy module drops
+      # the top level library symlinks like libklayout_tl.so.0
+      ansible.builtin.command:
+        cmd: cp -a --no-preserve=ownership {{ build_dir }}/klayout-bin/. {{ klayout_prefix }}/lib/klayout/
       become: true
       when: not klayout_bin.stat.exists
     - name: Install klayout start script
