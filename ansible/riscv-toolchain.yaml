@@ -1,0 +1,22 @@
+# RISC-V bare-metal C toolchain for the VexiiRiscv SoC (soclab).
+# The debian riscv64-unknown-elf gcc is multilib, i.e. it also builds for
+# rv32 cores: riscv64-unknown-elf-gcc -march=rv32i_zicsr -mabi=ilp32
+- name: Install RISC-V toolchain
+  hosts: default
+  tasks:
+    - name: Install riscv gcc, binutils, picolibc and gdb
+      # picolibc provides a small libc (printf, string functions, ...)
+      # gdb-multiarch can debug riscv targets
+      ansible.builtin.apt:
+        name: gcc-riscv64-unknown-elf
+              , binutils-riscv64-unknown-elf
+              , picolibc-riscv64-unknown-elf
+              , gdb-multiarch
+              , make
+      become: true
+    - name: Check that the rv32i/ilp32 multilib is available
+      ansible.builtin.command:
+        cmd: riscv64-unknown-elf-gcc -march=rv32i_zicsr -mabi=ilp32 -print-multi-directory
+      register: multilib
+      changed_when: false
+      failed_when: multilib.rc != 0 or "rv32i" not in multilib.stdout

@@ -5,3 +5,6 @@
 
 - name: Install SpinalHDL
   ansible.builtin.import_playbook: spinalhdl.yaml
+
+- name: Install RISC-V toolchain
+  ansible.builtin.import_playbook: riscv-toolchain.yaml
