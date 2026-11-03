@@ -1,0 +1,32 @@
+# Lattice synthesis tools
+
+- name: Install common tools
+  ansible.builtin.import_playbook: common.yaml
+
+- name: Install yosys
+  ansible.builtin.import_playbook: yosys.yaml
+
+- name: Install ghdl yosys plugin
+  ansible.builtin.import_playbook: ghdl-yosys-plugin.yaml
+
+- name: Install slang yosys plugin
+  ansible.builtin.import_playbook: slang-yosys-plugin.yaml
+
+- name: Install lattice synthesis debian packages
+  hosts: default
+  tasks:
+    - name: Install debian packages for lattice synthesis
+      ansible.builtin.apt:
+        name: nextpnr-ecp5
+              , fpga-trellis
+              , openfpgaloader
+      become: true
+
+- name: Add USB rules for lattice ecp5 versa board
+  hosts: default
+  tasks:
+    - name: Copy 51-latticeblaster.rules to /etc/udev/rules.d
+      ansible.builtin.copy:
+        src: files/51-latticeblaster.rules
+        dest: /etc/udev/rules.d
+      become: true
